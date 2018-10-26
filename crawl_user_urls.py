@@ -1,4 +1,4 @@
-import pymongo, os
+import pymongo, os, Queue
 from selenium import webdriver
 
 client = pymongo.MongoClient()
@@ -7,6 +7,9 @@ collection = db['user_urls']
 driver = webdriver.Chrome()
 url_list = [item["user_url"] for item in collection.find()]
 start_url = 'https://www.zhihu.com/people/xiao-jue-83/followers?page='
+
+def make_Queue():
+    
 
 
 def isDuplicate(url):
