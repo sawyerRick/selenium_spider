@@ -1,4 +1,5 @@
-import pymongo, os, queue, threading
+import pymongo, os, queue, threading, sys
+from multiprocessing import Pool
 from selenium import webdriver
 
 client = pymongo.MongoClient()
@@ -8,13 +9,10 @@ db_url_list = [item["user_url"] for item in collection.find()]
 start_url = 'https://www.zhihu.com/people/xiao-jue-83/followers?page='
 
 
-def make_queue(start_url):
+def make_url_list(start_url):
     start_page = int(input(">>start_page:"))
     end_page = int(input(">>end_page:"))
-    url_queue = queue.Queue()
-    for x in range(start_page, end_page):
-        url_queue.put(start_url + str(x))
-    return url_queue
+    return [start_url + str(x) for x in range(start_page, end_page)]
 
 
 def isDuplicate(url):
@@ -30,6 +28,10 @@ def crawl_user_urls(page):
     print("[+] trying page:%s" % page)
     driver.get(page)
     url_elements = driver.find_elements_by_class_name('UserLink-link')
+    if url_elements == []:
+        print("[!!!] 安全检查!!!!!!!")
+        print("[!!!] Stop at page: %s" % page)
+
     for elem in url_elements:
         user_url = elem.get_attribute('href')
         if (isDuplicate(user_url) == 0):
@@ -40,8 +42,10 @@ def crawl_user_urls(page):
     driver.close()
 
 if __name__ == "__main__":
-    url_queue = make_queue(start_url)
-    while not url_queue.empty():
-        crawl_thread = threading.Thread(target=crawl_user_urls, args=(url_queue.get(),))
-        crawl_thread.start()
+    url_list = make_url_list(start_url)
+    pool = Pool()
+    pool.map(crawl_user_urls, url_list)
+    pool.close()
     os.system('pause')
+
+
