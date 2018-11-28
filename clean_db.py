@@ -6,7 +6,8 @@ collection = db['user_urls']
 url_list = []
 count = 0
 
-def drop_and_create():
+def DeDuplicate():
+    print("正在清洗user_urls数据...")
     global count, collection
     
     for item in collection.find():
@@ -16,10 +17,12 @@ def drop_and_create():
     collection.drop()
     collection = db['user_urls']
 
+
     for url in url_set:
+        #pprint.pprint(url)
         collection.insert_one({"user_url": url})
         count += 1
 
 if __name__ == "__main__":
-    drop_and_create()
-    print("清洗后count: %d..." % count)
+    DeDuplicate()
+    print("清洗后一共有%d条记录..." % count)
